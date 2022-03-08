@@ -5,18 +5,18 @@
  * On vérifie la valeur de la température
  * On fait ce qu'on doit faire en fonction de sa valeur
  */
-void EINT2_IRQHandler() {
+void EINT3_IRQHandler() {
   LPC_GPIOINT->IO0IntClr |= 1 << 2; // On acquitte l'interruption
 	unsigned int temp = ((LPC_GPIO0->FIOPIN & (0xFF << 16)) >> 16); // On lit la valeur de la temperature (bits 16 à 23);
 	// On vérifie si la température est supérieure à 35°C
-  if((temp > 35) && (temp < 45 ) && (temp < 50) { 
+  if((temp > 35) && (temp < 45 ) && (temp < 50)) { 
     LPC_PWM1->MR2 = 25E6/60E3 * 0.5; // On fixe le rapport cyclique du PWM1.2 à 50%
 		LPC_PWM1->LER |= 1 << 2; // On met à 1 le bit 2 du LER afin de mettre à jour le Match Register 2
 		LPC_PWM1->TCR |= 1; // On démarre le PWM
 	}
   // On vérifie si la température est supérieure à 45°C   
   else if((temp > 45) && (temp < 50)) { 
-		LPC_PWM1->MR3 =25E6/60E3*0.9;// On fixe le rapport cyclique du PWM1.3 et PWM1.2 à 90%
+		LPC_PWM1->MR4 =25E6/60E3*0.9;// On fixe le rapport cyclique du PWM1.4 et PWM1.2 à 90%
 		LPC_PWM1->MR2 =25E6/60E3*0.9;
 		LPC_PWM1->LER |= 3 << 2;// On active les bits 2 et 3 du LER pour mettre à jour le Match Register 2 et Match Register 3
 	}
@@ -29,7 +29,7 @@ void EINT2_IRQHandler() {
   // Sinon, donc si la température est inférieure à 35°C
   else {
     // On remet le rapport cyclique à 0
-		LPC_PWM1->MR3 =0;
+		LPC_PWM1->MR4 =0;
 		LPC_PWM1->MR2 = 0;
 		LPC_PWM1->LER |= 3 << 2;// Mettre à jour les MR3 et MR2
 		LPC_PWM1->TCR &= ~(9 << 2); // Arrêter les PWM
@@ -77,11 +77,11 @@ void init_TIMER2() {
 /* Initialiser PWM   */
 void init_PWM() {
 	LPC_PINCON->PINSEL3 |= (1 << 9) | (1 << 15); // Configurer P1.20 and P1.23 à PWM1.2 and PWM1.3 
-	LPC_PWM1->PCR |= (3 << 10); // Activer PWM1.2 and PWM1.3
+	LPC_PWM1->PCR |= (5 << 10); // Activer PWM1.2 and PWM1.4
 	LPC_PWM1->MR0 = 25E6/60E3; // Fixer la fréquence à 60KHz
   LPC_PWM1->LER |= 1; // Mettre à jour MR0	
 	LPC_PWM1->MR2 = 0; // Rapport cyclique de 0% pour PWM1.2
-	LPC_PWM1->MR3 = 0; // Rapport cyclique de 0% pour PWM1.3
+	LPC_PWM1->MR4 = 0; // Rapport cyclique de 0% pour PWM1.4
 	LPC_PWM1->MCR |= 2; // Reset timer quand on arrive à MR0
 	LPC_PWM1->TCR |= 1 << 3; // Activer le mode PWM
 }
@@ -90,7 +90,7 @@ void init_PWM() {
 void init_GPIO() {
 	LPC_PINCON->PINSEL0 &= ~(3 << 4); // Mettre P0.2 en mode GPIO, ça sera notre ligne "new"
 	LPC_GPIO0->FIODIR &= ~(1 << 2); // Mettre P0.2 en entrée
-	LPC_PINCON->PINSEL1 &= ~( 0xFF ); // P0.16->P0.23 en GPIO
+	LPC_PINCON->PINSEL1 &= ~( 0xFFFF ); // P0.16->P0.23 en GPIO
 	LPC_GPIO0->FIODIR &= ~(0xFF << 16); // P0.16->P0.23 en entrée
 	
 	LPC_PINCON->PINSEL4 &= ~(3<<12); // P2.6 en GPIO
@@ -105,7 +105,7 @@ void init_GPIO() {
 void init_IR() {
 	LPC_GPIOINT->IO0IntEnF |= 1 << 2; // générer une interrutpion sur front descendant
 	LPC_GPIOINT->IO0IntClr |= 1 << 2; // Acquitter les interruptions en attente
-	NVIC_EnableIRQ(EINT2_IRQn); // Activer l'interruption
+	NVIC_EnableIRQ(EINT3_IRQn); // Activer l'interruption
 }
 int main() {
 	// Initialisation
