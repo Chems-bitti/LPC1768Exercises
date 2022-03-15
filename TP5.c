@@ -18,7 +18,7 @@ void EINT3_IRQHandler() {
   else if((temp > 45) && (temp < 50)) { 
 		LPC_PWM1->MR4 =25E6/60E3*0.9;// On fixe le rapport cyclique du PWM1.4 et PWM1.2 à 90%
 		LPC_PWM1->MR2 =25E6/60E3*0.9;
-		LPC_PWM1->LER |= 3 << 2;// On active les bits 2 et 3 du LER pour mettre à jour le Match Register 2 et Match Register 3
+		LPC_PWM1->LER |= 5 << 2;// On active les bits 2 et 3 du LER pour mettre à jour le Match Register 2 et Match Register 3
 	}
   // On vérifie si la température est supérieure à 50°C
   else if(temp > 50) {
@@ -31,7 +31,7 @@ void EINT3_IRQHandler() {
     // On remet le rapport cyclique à 0
 		LPC_PWM1->MR4 =0;
 		LPC_PWM1->MR2 = 0;
-		LPC_PWM1->LER |= 3 << 2;// Mettre à jour les MR3 et MR2
+		LPC_PWM1->LER |= 5 << 2;// Mettre à jour les MR3 et MR2
 		LPC_PWM1->TCR &= ~(9 << 2); // Arrêter les PWM
     // Arrêter les timers
 		LPC_TIM0->TCR &= ~1; 
